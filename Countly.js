@@ -599,7 +599,7 @@ class Countly {
 
   endEvent = (events) => {
     const eventsData = this.storedEvents[events];
-    eventsData.dur = Ajax.getTime() - eventsData.dur || 0;
+    eventsData.dur = (Ajax.getTime() - eventsData.dur) / 1000 || 0;
     this.log('endEvent-TimedEvent: ', eventsData);
     this.recordEvent(eventsData);
     delete this.storedEvents[eventsData.key];
@@ -716,7 +716,7 @@ class Countly {
       ...this.crashLogData,
       _online: true,
       _background: this.isBackground,
-      _run: Ajax.getTime() - this.startTime,
+      _run: (new Date().getTime() - this.startTime) / 1000,
     };
     if (crashLog) {
       // custom key/values provided by developers
