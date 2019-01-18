@@ -40,7 +40,7 @@ export const Ajax = {
   },
 
   // return current time
-  getTime: () => new Date().getTime() / 1000,
+  getTime: () => new Date().getTime(),
 
   // returns hour of the passed time
   getHour: data => new Date(data).getHours(),
@@ -55,7 +55,7 @@ export const Ajax = {
   reportViewDuration: (date) => {
     const now = new Date().getTime();
     const diff = now - date;
-    return diff;
+    return diff / 1000;
   },
 
   /**
