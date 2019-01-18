@@ -716,7 +716,7 @@ class Countly {
       ...this.crashLogData,
       _online: true,
       _background: this.isBackground,
-      _run: (new Date().getTime() - this.startTime) / 1000,
+      _run: Ajax.getTime() - this.startTime),
     };
     if (crashLog) {
       // custom key/values provided by developers
