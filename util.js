@@ -40,7 +40,7 @@ export const Ajax = {
   },
 
   // return current time
-  getTime: () => new Date().getTime(),
+  getTime: () => new Date().getTime() / 1000,
 
   // returns hour of the passed time
   getHour: data => new Date(data).getHours(),
