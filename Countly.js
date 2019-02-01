@@ -611,6 +611,13 @@ class Countly {
       user_details: userDetails,
     }, (result) => { this.log('setUserData', result); });
   }
+  
+  // sets consents
+  setConsents = (consents) => {
+    this.get('/i', {
+      consent: consents,
+    }, (result) => { this.log('setConsents', result); });
+  }
 
   // Push Notification
   initMessaging = (gcmSenderId, mode) => {
