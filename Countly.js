@@ -761,10 +761,10 @@ class Countly {
   enableCrashReporting = (enable = false, enableInDevMode = false) => {
     if (enable) {
       setJSExceptionHandler(this.crashReportingHandler, enableInDevMode);
-      setNativeExceptionHandler((errorString) => {
-        const crashLog = { error: errorString, name: 'Fatal Error', nonFatal: false };
-        this.addCrashLog(crashLog);
-      }, true, true);
+//       setNativeExceptionHandler((errorString) => {
+//         const crashLog = { error: errorString, name: 'Fatal Error', nonFatal: false };
+//         this.addCrashLog(crashLog);
+//       });
     }
   }
 
