@@ -744,7 +744,11 @@ class Countly {
   }
 
   crashReportingHandler = (e, isFatal) => {
-    const crashLog = { _error: e.message, nonFatal: !isFatal, name: 'Error' };
+    const regex = /\(blob:file:\/\/\/(.*):([0-9]*):([0-9]*)\)/g;
+    const subst = '\(blob:file\/\/\/bundle.js:$2:$3)';
+    // Replaces random bundle file name with bundle.js so that errors are grouped
+    const errorMessage = e.stack ? e.stack.replace(regex, subst) : e.message;
+    const crashLog = { _error: errorMessage, _stack: e.stack, _e: e, nonFatal: !isFatal, name: 'Error' };
 
     this.crashLogData = crashLog;
     if (this.customCrashLog && typeof this.customCrashLog === 'function') {
@@ -760,7 +764,7 @@ class Countly {
       setNativeExceptionHandler((errorString) => {
         const crashLog = { error: errorString, name: 'Fatal Error', nonFatal: false };
         this.addCrashLog(crashLog);
-      });
+      }, true, true);
     }
   }
 
