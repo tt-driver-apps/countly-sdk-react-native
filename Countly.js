@@ -1,7 +1,6 @@
-import { Platform, NativeModules, AsyncStorage, Alert, Dimensions, AppState, PushNotificationIOS, DeviceEventEmitter } from 'react-native';
+import { Platform, NativeModules, AsyncStorage, Alert, Dimensions, AppState } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import BackgroundTimer from 'react-native-background-timer';
-import NotificationActions from 'react-native-ios-notification-actions';
 import RNRestart from 'react-native-restart';
 import { setJSExceptionHandler, getJSExceptionHandler, setNativeExceptionHandler } from 'react-native-exception-handler';
 import { Ajax, userData, createHash } from './util';
@@ -11,7 +10,6 @@ export { default as StarRating } from './Countly.Rating';
 
 const sdkVersion = '1.0.6';
 const sdkName = 'countly-sdk-react-native';
-let PushNotification = null;
 
 class Countly {
   constructor() {
@@ -63,7 +61,7 @@ class Countly {
       });
     }
     AppState.addEventListener('change', nextState => this.onStateChange(nextState));
-    DeviceEventEmitter.addListener('notificationActionReceived', action => this.handleNotificationAction(action));
+    
     // get the queue having unprocessed requests
     Ajax.getItem = ('OFFLINE', (offline) => {
       if (offline) {
@@ -618,103 +616,6 @@ class Countly {
       consent: consents,
     }, (result) => { this.log('setConsents', result); });
   }
-
-  // Push Notification
-  initMessaging = (gcmSenderId, mode) => {
-
-    // dynamically importing PushNotification
-    PushNotification = require('react-native-push-notification');
-
-    PushNotification.configure({
-      onRegister: (token) => {
-
-        NotificationActions.validateToken(true);
-
-        this.registerPush(mode, token.token);
-      },
-      onNotification: (notification) => {
-
-        if (Platform.OS.match('android')) {
-          if (notification['c.b']) {
-              this.deepLinkData = JSON.parse(`${notification['c.b']}`);
-          }
-          const buttons = this.deepLinkData.map(data => `${data.t}`);
-          PushNotification.registerNotificationActions(buttons);
-          let imageUrl = null;
-          if (notification['c.m']) {
-            imageUrl = notification['c.m'];
-          }
-          PushNotification.localNotification({
-            /* Android Only Properties */
-            id: notification.id,
-            /* iOS and Android properties */
-            title: notification.title,
-            message: notification.message, // (required)
-            // imageUrl
-            imageUrl,
-            actions: `${JSON.stringify(buttons)}`, // (Android only) See the doc for notification actions to know more
-          });
-        }
-        notification.finish(PushNotificationIOS.FetchResult.NoData);
-        this.openPush(notification.id);
-      },
-      senderID: gcmSenderId,
-      permissions: {
-        alert: true,
-        badge: true,
-        sound: true,
-      },
-      popInitialNotification: true,
-      requestPermissions: true,
-    });
-  }
-
-  registerPush = (mode, token) => {
-    if (!this.isToken) {
-      this.isToken = true;
-      const data = {
-        token_session: 1,
-        test_mode: mode,
-      };
-      data[`${Platform.OS}_token`] = token;
-      this.get('/i', data, (result) => { this.log('registerPush', result); });
-    }
-  }
-
-  openPush = (pushNumber) => {
-    const eventData = { key: '[CLY]_push_open', count: 1, segmentation: { i: pushNumber } };
-    this.recordEvent(eventData);
-  }
-
-  actionPush = (pushNumber) => {
-    const eventData = { key: '[CLY]_push_action', count: 1, segmentation: { i: pushNumber } };
-    this.recordEvent(eventData);
-  }
-
-  sentPush = (pushNumber) => {
-    const eventData = { key: '[CLY]_push_sent', count: 1, segmentation: { i: pushNumber } };
-    this.recordEvent(eventData);
-  }
-
-  // handle Push Notification actions
-  handleNotificationAction = (action) => {
-    
-    if (Platform.OS.match('android')) {
-      const info = JSON.parse(action.dataJSON);
-      if (this.deepLinkData[0].t && info.action === this.deepLinkData[0].t) {
-        this.log(this.deepLinkData[0]);
-        this.deepLinkHandler.handler1(this.deepLinkData[0]);
-      } else if (this.deepLinkData[1].t && info.action === this.deepLinkData[1].t) {
-        this.log(this.deepLinkData[1]);
-        this.deepLinkHandler.handler2(this.deepLinkData[1]);
-        PushNotification.cancelLocalNotifications({ id: info.id });
-      }
-      this.actionPush(info.id);  
-    } else {
-      this.actionPush(action.identifier);
-    }
-  }
-  // Push Notification
 
   // crash report
   addCrashLog = (crashLog = null) => {
